@@ -1,51 +1,62 @@
 #!/usr/bin/env groovy
 
-library identifier: 'jenkins-shared-library@master', retriever: modernSCM(
-        [$class: 'GitSCMSource',
-        remote: 'https://github.com/simon-knudsen/jenkins-shared-library.git',
-        credentialsId: 'github-credentials'
-        ]
-)
+library identifier: 'jenkins-shared-library@master', retriever: modernSCM([
+    $class       : 'GitSCMSource',
+    remote       : 'https://github.com/simon-knudsen/jenkins-shared-library.git',
+    credentialsId: 'github-credentials'
+])
 
 pipeline {
     agent any
+
+    options {
+        buildDiscarder(logRotator(numToKeepStr: '10'))
+        disableConcurrentBuilds()
+        timeout(time: 30, unit: 'MINUTES')
+    }
 
     tools {
         maven 'maven-3.10'
     }
 
     environment {
-        IMAGE_NAME = 'simonknudsen7/demo-app:java-maven-1.0'
+        IMAGE_NAME     = 'simonknudsen7/demo-app:java-maven-1.0'
+        CONTAINER_NAME = 'demo-app'
+        EC2_HOST       = 'ec2-user@13.60.229.184'
+        HOST_PORT      = '3080'
+        APP_PORT       = '8080'
     }
 
     stages {
-        stage('build app') {
+        stage('Build app') {
             steps {
-                echo 'building application jar...'
+                echo 'Building application jar...'
                 buildJar()
             }
         }
 
-        stage('build image') {
+        stage('Build image') {
             steps {
-                script {
-                    echo 'building the docker image...'
-                    buildImage(env.IMAGE_NAME)
-                    dockerLogin()
-                    dockerPush(env.IMAGE_NAME)
-                }
+                echo 'Building and pushing the Docker image...'
+                buildImage(env.IMAGE_NAME)
+                dockerLogin()
+                dockerPush(env.IMAGE_NAME)
             }
         }
 
-        stage("deploy") {
+        stage('Deploy') {
             steps {
-                script {
-                    def dockerCmd = 'docker run -p 3080:3080 -d simonknudsen7/demo-app:1.0'
-                    sshagent(['ec2-server-key']) {
-                        sh "ssh -o StrictHostKeyChecking=no ec2-user@13.60.229.184 ${dockerCmd}"
-                    }
+                echo "Deploying ${env.IMAGE_NAME} to ${env.EC2_HOST}..."
+                sshagent(['ec2-user']) {
+                    sh '''
+                        ssh -o StrictHostKeyChecking=no "$EC2_HOST" "
+                            docker pull $IMAGE_NAME &&
+                            (docker rm -f $CONTAINER_NAME || true) &&
+                            docker run -d --name $CONTAINER_NAME -p $HOST_PORT:$APP_PORT $IMAGE_NAME
+                        "
+                    '''
                 }
             }
-        }               
+        }
     }
-} 
+}
