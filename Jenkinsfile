@@ -37,20 +37,15 @@ pipeline {
             }
         }
 
-        stage('deploy') {
+        stage("deploy") {
             steps {
                 script {
-                    echo 'deploying docker image to EC2...'
-
-                    def dockerCmd = "docker run -p 3080:3080 -d ${IMAGE_NAME}"
-
+                    def dockerCmd = 'docker run -p 3080:3080 -d simonknudsen7/demo-app:1.0'
                     sshagent(['ec2-server-key']) {
-                        sh """
-                            ssh -o StrictHostKeyChecking=no ec2-user@13.60.229.184 '${dockerCmd}'
-                        """
+                        sh "ssh -o StrictHostKeyChecking=no ec2-user@13.60.229.184 ${dockerCmd}"
                     }
                 }
             }
-        }
+        }               
     }
-}
+} 
