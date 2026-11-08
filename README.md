@@ -1,5 +1,4 @@
-# Demo Project:
-CD - Deploy Application from Jenkins Pipeline to EC2 Instance (automatically with docker)
+# CD - Deploy Application from Jenkins Pipeline to EC2 Instance (automatically with docker)
 
 <br>
 
