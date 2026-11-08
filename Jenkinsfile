@@ -31,9 +31,7 @@ pipeline {
             }
         }
     }
-}
 
-    stages {
         stage('build app') {
             steps {
                 echo 'building application jar...'
