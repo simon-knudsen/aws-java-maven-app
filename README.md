@@ -58,3 +58,30 @@ AWS, Jenkins, Docker, Linux, Git, Java, Maven, Docker Hub
 
 ![Docker Compose on EC2](images/docker-compose-ec2.png)<br>
 _On the EC2 instance, `ls` shows the `docker-compose.yaml` file that the Jenkins pipeline copied to the server, and `docker ps` shows the two containers Docker Compose started from it: `simonknudsen7/demo-app:java-maven-1.0` on port 8080 and `postgres:15` on port 5432._
+
+<br>
+
+# Complete the CI/CD Pipeline (Docker-Compose, Dynamic versioning)
+
+<br>
+
+## Technologies used:
+
+AWS, Jenkins, Docker, Linux, Git, Java, Maven, Docker Hub
+
+<br>
+
+## Project Description:
+
+- CI step: Increment version
+- CI step: Build artifact for Java Maven application
+- CI step: Build and push Docker image to Docker Hub
+- CD step: Deploy new application version with Docker Compose
+- CD step: Commit the version update
+
+<br>
+
+![Version overview](images/version-overview.png)<br>
+_Overview of the complete CI/CD pipeline I built with dynamic versioning: Jenkins increments the version in `pom.xml`, builds the JAR with the new version, builds and pushes a Docker image tagged with that version to Docker Hub, deploys it to EC2 with Docker Compose, and finally commits the version bump back to the Git repository._
+
+<br>
